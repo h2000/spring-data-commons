@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base {@link RepositoryInvoker} using reflection to invoke methods on Spring Data Repositories.
- * 
+ *
  * @author Oliver Gierke
  * @since 1.10
  */
@@ -57,7 +57,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 	/**
 	 * Creates a new {@link ReflectionRepositoryInvoker} for the given repository, {@link RepositoryMetadata} and
 	 * {@link ConversionService}.
-	 * 
+	 *
 	 * @param repository must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param conversionService must not be {@literal null}.
@@ -75,7 +75,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 		this.conversionService = conversionService;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.rest.core.invoke.RepositoryInvocationInformation#hasFindAllMethod()
 	 */
@@ -92,7 +92,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 		return invokeFindAllReflectively(sort);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.rest.core.invoke.RepositoryInvoker#invokeFindAll(org.springframework.data.domain.Pageable)
 	 */
@@ -101,7 +101,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 		return invokeFindAllReflectively(pageable);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.rest.core.invoke.RepositoryInvocationInformation#hasSaveMethod()
 	 */
@@ -120,7 +120,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 		return invoke(methods.getSaveMethod(), object);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.rest.core.invoke.RepositoryInvocationInformation#hasFindOneMethod()
 	 */
@@ -129,7 +129,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 		return methods.hasFindOneMethod();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.rest.core.invoke.RepositoryInvoker#invokeFindOne(java.io.Serializable)
 	 */
@@ -140,7 +140,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 		return invoke(methods.getFindOneMethod(), convertId(id));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.rest.core.invoke.RepositoryInvocationInformation#hasDeleteMethod()
 	 */
@@ -149,7 +149,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 		return methods.hasDelete();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.rest.core.invoke.RepositoryInvoker#invokeDelete(java.io.Serializable)
 	 */
@@ -170,7 +170,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.support.RepositoryInvoker#invokeQueryMethod(java.lang.reflect.Method, java.util.Map, org.springframework.data.domain.Pageable, org.springframework.data.domain.Sort)
 	 */
@@ -254,7 +254,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 
 	/**
 	 * Invokes the given method with the given arguments on the backing repository.
-	 * 
+	 *
 	 * @param method
 	 * @param arguments
 	 * @return
@@ -266,7 +266,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 
 	/**
 	 * Converts the given id into the id type of the backing repository.
-	 * 
+	 *
 	 * @param id must not be {@literal null}.
 	 * @return
 	 */
@@ -312,7 +312,7 @@ class ReflectionRepositoryInvoker implements RepositoryInvoker {
 
 	/**
 	 * Unwraps the first item if the given source has exactly one element.
-	 * 
+	 *
 	 * @param source can be {@literal null}.
 	 * @return
 	 */

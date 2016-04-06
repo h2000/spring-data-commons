@@ -17,6 +17,8 @@ package org.springframework.data.repository.query;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,6 +28,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.reactivestreams.Publisher;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
@@ -38,7 +41,7 @@ import org.springframework.util.Assert;
 /**
  * A {@link ResultProcessor} to expose metadata about query result element projection and eventually post prcessing raw
  * query results into projections and data transfer objects.
- * 
+ *
  * @author Oliver Gierke
  * @author John Blum
  * @since 1.12
@@ -53,7 +56,7 @@ public class ResultProcessor {
 
 	/**
 	 * Creates a new {@link ResultProcessor} from the given {@link QueryMethod} and {@link ProjectionFactory}.
-	 * 
+	 *
 	 * @param method must not be {@literal null}.
 	 * @param factory must not be {@literal null}.
 	 */
@@ -63,7 +66,7 @@ public class ResultProcessor {
 
 	/**
 	 * Creates a new {@link ResultProcessor} for the given {@link QueryMethod}, {@link ProjectionFactory} and type.
-	 * 
+	 *
 	 * @param method must not be {@literal null}.
 	 * @param factory must not be {@literal null}.
 	 * @param type must not be {@literal null}.
@@ -82,7 +85,7 @@ public class ResultProcessor {
 
 	/**
 	 * Returns a new {@link ResultProcessor} with a new projection type obtained from the given {@link ParameterAccessor}.
-	 * 
+	 *
 	 * @param accessor can be {@literal null}.
 	 * @return
 	 */
@@ -99,7 +102,7 @@ public class ResultProcessor {
 
 	/**
 	 * Returns the {@link ReturnedType}.
-	 * 
+	 *
 	 * @return
 	 */
 	public ReturnedType getReturnedType() {
@@ -108,7 +111,7 @@ public class ResultProcessor {
 
 	/**
 	 * Post-processes the given query result.
-	 * 
+	 *
 	 * @param source can be {@literal null}.
 	 * @return
 	 */
@@ -119,7 +122,7 @@ public class ResultProcessor {
 	/**
 	 * Post-processes the given query result using the given preparing {@link Converter} to potentially prepare collection
 	 * elements.
-	 * 
+	 *
 	 * @param source can be {@literal null}.
 	 * @param preparingConverter must not be {@literal null}.
 	 * @return
@@ -156,6 +159,18 @@ public class ResultProcessor {
 			return (T) new StreamQueryResultHandler(type, converter).handle(source);
 		}
 
+		if (source instanceof Mono) {
+
+			Mono<?> mono = (Mono<?>) source;
+			return (T) mono.map(o -> type.isInstance(o) ? o : converter.convert(o));
+		}
+
+		if (source instanceof Flux) {
+
+			Flux<?> flux = (Flux<?>) source;
+			return (T) flux.map(o -> type.isInstance(o) ? o : converter.convert(o));
+		}
+
 		return (T) converter.convert(source);
 	}
 
@@ -184,7 +199,7 @@ public class ResultProcessor {
 		/**
 		 * Returns a new {@link ChainingConverter} that hands the elements resulting from the current conversion to the
 		 * given {@link Converter}.
-		 * 
+		 *
 		 * @param converter must not be {@literal null}.
 		 * @return
 		 */
@@ -203,7 +218,7 @@ public class ResultProcessor {
 			});
 		}
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 		 */
@@ -223,7 +238,7 @@ public class ResultProcessor {
 
 		INSTANCE;
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 		 */
@@ -240,7 +255,7 @@ public class ResultProcessor {
 		private final @NonNull ProjectionFactory factory;
 		private final ConversionService conversionService = new DefaultConversionService();
 
-		/* 
+		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 		 */

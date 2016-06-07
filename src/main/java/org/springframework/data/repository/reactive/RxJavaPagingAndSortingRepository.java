@@ -23,42 +23,43 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.NoRepositoryBean;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import rx.Observable;
+import rx.Single;
 
 /**
- * Extension of {@link ReactiveCrudRepository} to provide additional methods to retrieve entities using the pagination
- * and sorting abstraction.
+ * Extension of {@link RxJavaCrudRepository} to provide additional methods to retrieve entities using the pagination and sorting
+ * abstraction.
  *
  * @author Mark Paluch
  * @see Sort
  * @see Pageable
- * @see Mono
- * @see Flux
+ * @see Single
+ * @see Observable
+ * @see RxJavaCrudRepository
  */
 @NoRepositoryBean
-public interface ReactivePagingAndSortingRepository<T, ID extends Serializable> extends ReactiveCrudRepository<T, ID> {
+public interface RxJavaPagingAndSortingRepository<T, ID extends Serializable> extends RxJavaCrudRepository<T, ID> {
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#findAll()
 	 */
 	@Override
-	Flux<T> findAll();
+	Observable<T> findAll();
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#findAll(java.lang.Iterable)
 	 */
 	@Override
-	Flux<T> findAll(Iterable<ID> ids);
+	Observable<T> findAll(Iterable<ID> ids);
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#findAll(org.reactivestreams.Publisher)
 	 */
 	@Override
-	Flux<T> findAll(Publisher<ID> idStream);
+	Observable<T> findAll(Publisher<ID> idStream);
 
 	/**
 	 * Returns all entities sorted by the given options.
@@ -66,7 +67,7 @@ public interface ReactivePagingAndSortingRepository<T, ID extends Serializable> 
 	 * @param sort
 	 * @return all entities sorted by the given options
 	 */
-	Flux<T> findAll(Sort sort);
+	Observable<T> findAll(Sort sort);
 
 	/**
 	 * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.
@@ -74,5 +75,5 @@ public interface ReactivePagingAndSortingRepository<T, ID extends Serializable> 
 	 * @param pageable
 	 * @return a page of entities
 	 */
-	Mono<Page<T>> findAll(Pageable pageable);
+	Single<Page<T>> findAll(Pageable pageable);
 }

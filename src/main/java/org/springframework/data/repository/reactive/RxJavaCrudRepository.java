@@ -21,19 +21,19 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import rx.Observable;
+import rx.Single;
 
 /**
  * Interface for generic CRUD operations on a repository for a specific type. This repository follows reactive paradigms
- * and uses Project Reactor types.
+ * and uses RxJava types.
  *
  * @author Mark Paluch
- * @see Mono
- * @see Flux
+ * @see Single
+ * @see Observable
  */
 @NoRepositoryBean
-public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repository<T, ID> {
+public interface RxJavaCrudRepository<T, ID extends Serializable> extends Repository<T, ID> {
 
 	/**
 	 * Saves a given entity. Use the returned instance for further operations as the save operation might have changed the
@@ -42,7 +42,7 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @param entity
 	 * @return the saved entity
 	 */
-	<S extends T> Mono<S> save(S entity);
+	<S extends T> Single<S> save(S entity);
 
 	/**
 	 * Saves all given entities.
@@ -51,7 +51,7 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @return the saved entities
 	 * @throws IllegalArgumentException in case the given entity is {@literal null}.
 	 */
-	<S extends T> Flux<S> save(Iterable<S> entities);
+	<S extends T> Observable<S> save(Iterable<S> entities);
 
 	/**
 	 * Saves all given entities.
@@ -60,7 +60,7 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @return the saved entities
 	 * @throws IllegalArgumentException in case the given {@code Publisher} is {@literal null}.
 	 */
-	<S extends T> Flux<S> save(Publisher<S> entityStream);
+	<S extends T> Observable<S> save(Publisher<S> entityStream);
 
 	/**
 	 * Retrieves an entity by its id.
@@ -69,16 +69,16 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @return the entity with the given id or {@literal null} if none found
 	 * @throws IllegalArgumentException if {@code id} is {@literal null}
 	 */
-	Mono<T> findOne(ID id);
+	Single<T> findOne(ID id);
 
 	/**
-	 * Retrieves an entity by its id supplied by a {@link Mono}.
+	 * Retrieves an entity by its id supplied by a {@link Single}.
 	 *
 	 * @param id must not be {@literal null}.
 	 * @return the entity with the given id or {@literal null} if none found
 	 * @throws IllegalArgumentException if {@code id} is {@literal null}
 	 */
-	Mono<T> findOne(Mono<ID> id);
+	Single<T> findOne(Single<ID> id);
 
 	/**
 	 * Returns whether an entity with the given id exists.
@@ -87,23 +87,23 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @return true if an entity with the given id exists, {@literal false} otherwise
 	 * @throws IllegalArgumentException if {@code id} is {@literal null}
 	 */
-	Mono<Boolean> exists(ID id);
+	Single<Boolean> exists(ID id);
 
 	/**
-	 * Returns whether an entity with the given id exists supplied by a {@link Mono}.
+	 * Returns whether an entity with the given id exists supplied by a {@link Single}.
 	 *
 	 * @param id must not be {@literal null}.
 	 * @return true if an entity with the given id exists, {@literal false} otherwise
 	 * @throws IllegalArgumentException if {@code id} is {@literal null}
 	 */
-	Mono<Boolean> exists(Mono<ID> id);
+	Single<Boolean> exists(Single<ID> id);
 
 	/**
 	 * Returns all instances of the type.
 	 *
 	 * @return all entities
 	 */
-	Flux<T> findAll();
+	Observable<T> findAll();
 
 	/**
 	 * Returns all instances of the type with the given IDs.
@@ -111,7 +111,7 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @param ids
 	 * @return
 	 */
-	Flux<T> findAll(Iterable<ID> ids);
+	Observable<T> findAll(Iterable<ID> ids);
 
 	/**
 	 * Returns all instances of the type with the given IDs.
@@ -119,14 +119,14 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @param idStream
 	 * @return
 	 */
-	Flux<T> findAll(Publisher<ID> idStream);
+	Observable<T> findAll(Publisher<ID> idStream);
 
 	/**
 	 * Returns the number of entities available.
 	 *
 	 * @return the number of entities
 	 */
-	Mono<Long> count();
+	Single<Long> count();
 
 	/**
 	 * Deletes the entity with the given id.
@@ -134,7 +134,7 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @param id must not be {@literal null}.
 	 * @throws IllegalArgumentException in case the given {@code id} is {@literal null}
 	 */
-	Mono<Void> delete(ID id);
+	Single<Void> delete(ID id);
 
 	/**
 	 * Deletes a given entity.
@@ -142,7 +142,7 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @param entity
 	 * @throws IllegalArgumentException in case the given entity is {@literal null}.
 	 */
-	Mono<Void> delete(T entity);
+	Single<Void> delete(T entity);
 
 	/**
 	 * Deletes the given entities.
@@ -150,7 +150,7 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @param entities
 	 * @throws IllegalArgumentException in case the given {@link Iterable} is {@literal null}.
 	 */
-	Mono<Void> delete(Iterable<? extends T> entities);
+	Single<Void> delete(Iterable<? extends T> entities);
 
 	/**
 	 * Deletes the given entities.
@@ -158,10 +158,10 @@ public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repo
 	 * @param entityStream
 	 * @throws IllegalArgumentException in case the given {@link Publisher} is {@literal null}.
 	 */
-	Mono<Void> delete(Publisher<? extends T> entityStream);
+	Single<Void> delete(Publisher<? extends T> entityStream);
 
 	/**
 	 * Deletes all entities managed by the repository.
 	 */
-	Mono<Void> deleteAll();
+	Single<Void> deleteAll();
 }

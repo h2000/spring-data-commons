@@ -27,38 +27,37 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Extension of {@link ReactiveCrudRepository} to provide additional methods to retrieve entities using the pagination
+ * Extension of {@link ReactiveStreamsCrudRepository} to provide additional methods to retrieve entities using the pagination
  * and sorting abstraction.
  *
  * @author Mark Paluch
  * @see Sort
  * @see Pageable
- * @see Mono
- * @see Flux
+ * @see Publisher
  */
 @NoRepositoryBean
-public interface ReactivePagingAndSortingRepository<T, ID extends Serializable> extends ReactiveStreamsPagingAndSortingRepository<T, ID> {
+public interface ReactiveStreamsPagingAndSortingRepository<T, ID extends Serializable> extends ReactiveStreamsCrudRepository<T, ID> {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#findAll()
+	 * @see org.springframework.data.repository.reactive.ReactiveStreamsCrudRepository#findAll()
 	 */
 	@Override
-	Flux<T> findAll();
+	Publisher<T> findAll();
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#findAll(java.lang.Iterable)
+	 * @see org.springframework.data.repository.reactive.ReactiveStreamsCrudRepository#findAll(java.lang.Iterable)
 	 */
 	@Override
-	Flux<T> findAll(Iterable<ID> ids);
+	Publisher<T> findAll(Iterable<ID> ids);
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#findAll(org.reactivestreams.Publisher)
+	 * @see org.springframework.data.repository.reactive.ReactiveStreamsCrudRepository#findAll(org.reactivestreams.Publisher)
 	 */
 	@Override
-	Flux<T> findAll(Publisher<ID> idStream);
+	Publisher<T> findAll(Publisher<ID> idStream);
 
 	/**
 	 * Returns all entities sorted by the given options.
@@ -66,7 +65,7 @@ public interface ReactivePagingAndSortingRepository<T, ID extends Serializable> 
 	 * @param sort
 	 * @return all entities sorted by the given options
 	 */
-	Flux<T> findAll(Sort sort);
+	Publisher<T> findAll(Sort sort);
 
 	/**
 	 * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.
@@ -74,5 +73,5 @@ public interface ReactivePagingAndSortingRepository<T, ID extends Serializable> 
 	 * @param pageable
 	 * @return a page of entities
 	 */
-	Mono<Page<T>> findAll(Pageable pageable);
+	Publisher<Page<T>> findAll(Pageable pageable);
 }

@@ -31,7 +31,6 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.data.repository.reactive.ReactivePagingAndSortingRepository;
-import org.springframework.data.repository.reactive.ReactiveStreamsPagingAndSortingRepository;
 import org.springframework.data.repository.reactive.RxJavaCrudRepository;
 import org.springframework.data.repository.util.QueryExecutionConverters;
 
@@ -133,7 +132,6 @@ public class ReactiveRepositoryInformationUnitTests {
 			implements ReactiveCrudRepository<T, ID> {
 
 	}
-
 
 	static class User {
 

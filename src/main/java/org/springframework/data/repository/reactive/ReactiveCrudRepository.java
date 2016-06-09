@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono;
  * @see ReactiveStreamsCrudRepository
  */
 @NoRepositoryBean
-public interface ReactiveCrudRepository<T, ID extends Serializable> extends ReactiveStreamsCrudRepository<T, ID> {
+public interface ReactiveCrudRepository<T, ID extends Serializable> extends Repository<T, ID> {
 
 	/**
 	 * Saves a given entity. Use the returned instance for further operations as the save operation might have changed the

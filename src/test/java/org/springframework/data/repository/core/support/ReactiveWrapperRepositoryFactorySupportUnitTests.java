@@ -28,7 +28,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.reactive.ReactiveStreamsPagingAndSortingRepository;
+import org.springframework.data.repository.reactive.ReactivePagingAndSortingRepository;
 import org.springframework.data.repository.util.QueryExecutionConverters;
 
 import reactor.core.publisher.Mono;
@@ -46,7 +46,7 @@ public class ReactiveWrapperRepositoryFactorySupportUnitTests {
 
 	DummyRepositoryFactory factory;
 
-	@Mock ReactiveStreamsPagingAndSortingRepository<Object, Serializable> backingRepo;
+	@Mock ReactivePagingAndSortingRepository<Object, Serializable> backingRepo;
 	@Mock ObjectRepositoryCustom customImplementation;
 
 	@Before

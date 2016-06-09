@@ -15,8 +15,7 @@
  */
 package org.springframework.data.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -46,7 +45,7 @@ public class RepositoryConfigurationExtensionSupportUnitTests {
 	 */
 	@Test
 	public void doesNotConsiderRepositoryForPlainTypeStrictMatch() {
-		assertThat(extension.isStrictRepositoryCandidate(PlainTypeRepository.class), is(false));
+		assertThat(extension.isStrictRepositoryCandidate(PlainTypeRepository.class)).isFalse();
 	}
 
 	/**
@@ -54,7 +53,7 @@ public class RepositoryConfigurationExtensionSupportUnitTests {
 	 */
 	@Test
 	public void considersRepositoryWithAnnotatedTypeStrictMatch() {
-		assertThat(extension.isStrictRepositoryCandidate(AnnotatedTypeRepository.class), is(true));
+		assertThat(extension.isStrictRepositoryCandidate(AnnotatedTypeRepository.class)).isTrue();
 	}
 
 	/**
@@ -62,7 +61,7 @@ public class RepositoryConfigurationExtensionSupportUnitTests {
 	 */
 	@Test
 	public void considersRepositoryInterfaceExtendingStoreInterfaceStrictMatch() {
-		assertThat(extension.isStrictRepositoryCandidate(ExtendingInterface.class), is(true));
+		assertThat(extension.isStrictRepositoryCandidate(ExtendingInterface.class)).isTrue();
 	}
 
 	/**
@@ -82,7 +81,7 @@ public class RepositoryConfigurationExtensionSupportUnitTests {
 		extension.registerBeansForRoot(beanFactory, configurationSource);
 		extension.registerBeansForRoot(beanFactory, configurationSource);
 
-		assertThat(beanFactory.getBeanDefinitionCount(), is(1));
+		assertThat(beanFactory.getBeanDefinitionCount()).isEqualTo(1);
 	}
 
 	static class SampleRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {

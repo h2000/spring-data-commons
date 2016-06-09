@@ -37,7 +37,7 @@ import reactor.core.publisher.Mono;
  * @see Flux
  */
 @NoRepositoryBean
-public interface ReactivePagingAndSortingRepository<T, ID extends Serializable> extends ReactiveStreamsPagingAndSortingRepository<T, ID> {
+public interface ReactivePagingAndSortingRepository<T, ID extends Serializable> extends ReactiveCrudRepository<T, ID> {
 
 	/*
 	 * (non-Javadoc)

@@ -59,7 +59,7 @@ public interface RxJavaPagingAndSortingRepository<T, ID extends Serializable> ex
 	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#findAll(org.reactivestreams.Publisher)
 	 */
 	@Override
-	Observable<T> findAll(Publisher<ID> idStream);
+	Observable<T> findAll(Observable<ID> idStream);
 
 	/**
 	 * Returns all entities sorted by the given options.

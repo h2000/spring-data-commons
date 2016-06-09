@@ -19,6 +19,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import rx.Observable;
+import rx.Single;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,15 +37,17 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.repository.util.QueryExecutionConverters;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.util.Assert;
 
 /**
- * A {@link ResultProcessor} to expose metadata about query result element projection and eventually post prcessing raw
+ * A {@link ResultProcessor} to expose metadata about query result element projection and eventually post processing raw
  * query results into projections and data transfer objects.
  *
  * @author Oliver Gierke
  * @author John Blum
+ * @author Mark Paluch
  * @since 1.12
  */
 public class ResultProcessor {
@@ -159,16 +163,32 @@ public class ResultProcessor {
 			return (T) new StreamQueryResultHandler(type, converter).handle(source);
 		}
 
-		if (source instanceof Mono) {
+		if(QueryExecutionConverters.supports(source.getClass())){
 
-			Mono<?> mono = (Mono<?>) source;
-			return (T) mono.map(o -> type.isInstance(o) ? o : converter.convert(o));
-		}
+			// TODO: Perform mapping in a way that allows absence of wrapper types
+			if (source instanceof Mono) {
 
-		if (source instanceof Flux) {
+				Mono<?> mono = (Mono<?>) source;
+				return (T) mono.map(o -> type.isInstance(o) ? o : converter.convert(o));
+			}
 
-			Flux<?> flux = (Flux<?>) source;
-			return (T) flux.map(o -> type.isInstance(o) ? o : converter.convert(o));
+			if (source instanceof Flux) {
+
+				Flux<?> flux = (Flux<?>) source;
+				return (T) flux.map(o -> type.isInstance(o) ? o : converter.convert(o));
+			}
+
+			if (source instanceof Single) {
+
+				Single<?> single = (Single<?>) source;
+				return (T) single.map(o -> type.isInstance(o) ? o : converter.convert(o));
+			}
+
+			if (source instanceof Observable) {
+
+				Observable<?> observable = (Observable<?>) source;
+				return (T) observable.map(o -> type.isInstance(o) ? o : converter.convert(o));
+			}
 		}
 
 		return (T) converter.convert(source);

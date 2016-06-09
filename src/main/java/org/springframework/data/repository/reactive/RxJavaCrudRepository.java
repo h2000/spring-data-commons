@@ -60,7 +60,7 @@ public interface RxJavaCrudRepository<T, ID extends Serializable> extends Reposi
 	 * @return the saved entities
 	 * @throws IllegalArgumentException in case the given {@code Publisher} is {@literal null}.
 	 */
-	<S extends T> Observable<S> save(Publisher<S> entityStream);
+	<S extends T> Observable<S> save(Observable<S> entityStream);
 
 	/**
 	 * Retrieves an entity by its id.
@@ -119,7 +119,7 @@ public interface RxJavaCrudRepository<T, ID extends Serializable> extends Reposi
 	 * @param idStream
 	 * @return
 	 */
-	Observable<T> findAll(Publisher<ID> idStream);
+	Observable<T> findAll(Observable<ID> idStream);
 
 	/**
 	 * Returns the number of entities available.
@@ -158,7 +158,7 @@ public interface RxJavaCrudRepository<T, ID extends Serializable> extends Reposi
 	 * @param entityStream
 	 * @throws IllegalArgumentException in case the given {@link Publisher} is {@literal null}.
 	 */
-	Single<Void> delete(Publisher<? extends T> entityStream);
+	Single<Void> delete(Observable<? extends T> entityStream);
 
 	/**
 	 * Deletes all entities managed by the repository.

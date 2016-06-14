@@ -278,7 +278,7 @@ public class ResultProcessorUnitTests {
 		Object result = getProcessor("findMonoSample").processResult(samples);
 
 		assertThat(result, is(instanceOf(Mono.class)));
-		Object content = ((Mono<Object>) result).get();
+		Object content = ((Mono<Object>) result).block();
 
 		assertThat(content, is(instanceOf(Sample.class)));
 	}
@@ -318,7 +318,7 @@ public class ResultProcessorUnitTests {
 		});
 
 		assertThat(result, is(instanceOf(Mono.class)));
-		Object content = ((Mono<Object>) result).get();
+		Object content = ((Mono<Object>) result).block();
 
 		assertThat(content, is(instanceOf(SampleDto.class)));
 	}
@@ -335,7 +335,7 @@ public class ResultProcessorUnitTests {
 		Object result = getProcessor("findFluxProjection").processResult(samples);
 
 		assertThat(result, is(instanceOf(Flux.class)));
-		List<Object> content = ((Flux<Object>) result).toList().get();
+		List<Object> content = ((Flux<Object>) result).collectList().block();
 
 		assertThat(content, is(not(empty())));
 		assertThat(content.get(0), is(instanceOf(SampleProjection.class)));

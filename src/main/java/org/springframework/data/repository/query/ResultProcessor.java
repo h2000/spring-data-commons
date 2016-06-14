@@ -17,10 +17,6 @@ package org.springframework.data.repository.query;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import rx.Observable;
-import rx.Single;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,14 +26,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.reactivestreams.Publisher;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.projection.ProjectionFactory;
-import org.springframework.data.repository.util.QueryExecutionConverters;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.util.Assert;
 
@@ -163,32 +157,8 @@ public class ResultProcessor {
 			return (T) new StreamQueryResultHandler(type, converter).handle(source);
 		}
 
-		if(QueryExecutionConverters.supports(source.getClass())){
-
-			// TODO: Perform mapping in a way that allows absence of wrapper types
-			if (source instanceof Mono) {
-
-				Mono<?> mono = (Mono<?>) source;
-				return (T) mono.map(o -> type.isInstance(o) ? o : converter.convert(o));
-			}
-
-			if (source instanceof Flux) {
-
-				Flux<?> flux = (Flux<?>) source;
-				return (T) flux.map(o -> type.isInstance(o) ? o : converter.convert(o));
-			}
-
-			if (source instanceof Single) {
-
-				Single<?> single = (Single<?>) source;
-				return (T) single.map(o -> type.isInstance(o) ? o : converter.convert(o));
-			}
-
-			if (source instanceof Observable) {
-
-				Observable<?> observable = (Observable<?>) source;
-				return (T) observable.map(o -> type.isInstance(o) ? o : converter.convert(o));
-			}
+		if(ReactiveWrapperConverters.supports(source.getClass())){
+			return (T) ReactiveWrapperConverters.map(source, o -> type.isInstance(o) ? o : converter.convert(o));
 		}
 
 		return (T) converter.convert(source);

@@ -201,7 +201,7 @@ public abstract class QueryExecutionConverters {
 		@Override
 		public Set<ConvertiblePair> getConvertibleTypes() {
 
-			Set<ConvertiblePair> pairs = new HashSet<ConvertiblePair>(wrapperTypes.length);
+			Set<ConvertiblePair> pairs = new HashSet<>(wrapperTypes.length);
 
 			for (Class<?> wrapperType : wrapperTypes) {
 				pairs.add(new ConvertiblePair(NullableWrapper.class, wrapperType));
@@ -306,7 +306,7 @@ public abstract class QueryExecutionConverters {
 		 * @param conversionService must not be {@literal null}.
 		 */
 		public NullableWrapperToFutureConverter(ConversionService conversionService) {
-			super(conversionService, new AsyncResult<Object>(null), Future.class, ListenableFuture.class);
+			super(conversionService, new AsyncResult<>(null), Future.class, ListenableFuture.class);
 		}
 
 		/* 
@@ -315,7 +315,7 @@ public abstract class QueryExecutionConverters {
 		 */
 		@Override
 		protected Object wrap(Object source) {
-			return new AsyncResult<Object>(source);
+			return new AsyncResult<>(source);
 		}
 	}
 

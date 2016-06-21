@@ -74,8 +74,9 @@ class DefaultRepositoryInformation implements RepositoryInformation {
 	public DefaultRepositoryInformation(RepositoryMetadata metadata, Class<?> repositoryBaseClass,
 			Optional<Class<?>> customImplementationClass) {
 
-		Assert.notNull(metadata);
-		Assert.notNull(repositoryBaseClass);
+		Assert.notNull(metadata, "Repository metadata must not be null!");
+		Assert.notNull(repositoryBaseClass, "Repository base class must not be null!");
+		Assert.notNull(customImplementationClass, "Custom implementation class must not be null!");
 
 		this.metadata = metadata;
 		this.repositoryBaseClass = repositoryBaseClass;
@@ -160,7 +161,7 @@ class DefaultRepositoryInformation implements RepositoryInformation {
 	@Override
 	public Streamable<Method> getQueryMethods() {
 
-		Set<Method> result = new HashSet<Method>();
+		Set<Method> result = new HashSet<>();
 
 		for (Method method : getRepositoryInterface().getMethods()) {
 			method = ClassUtils.getMostSpecificMethod(method, getRepositoryInterface());
@@ -235,13 +236,13 @@ class DefaultRepositoryInformation implements RepositoryInformation {
 	 */
 	Method getTargetClassMethod(Method method, Optional<Class<?>> baseClass) {
 
-		return baseClass.map(it -> {
+		return baseClass.flatMap(it -> {
 
 			return Arrays.stream(it.getMethods())//
 					.filter(baseClassMethod -> method.getName().equals(baseClassMethod.getName()))// Right name
 					.filter(baseClassMethod -> method.getParameterTypes().length == baseClassMethod.getParameterTypes().length)
 					.filter(baseClassMethod -> parametersMatch(method, baseClassMethod))// All parameters match
-					.findFirst().orElse(method);
+					.findFirst();
 
 		}).orElse(method);
 	}

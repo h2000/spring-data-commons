@@ -40,7 +40,7 @@ import rx.Single;
  */
 public abstract class ReactiveWrapperConverters {
 
-	private static final boolean PROJECT_REACTOR_PRESENT = ClassUtils.isPresent("reactor.core.converter.DependencyUtils",
+	private static final boolean PROJECT_REACTOR_PRESENT = ClassUtils.isPresent("reactor.core.publisher.Flux",
 			QueryExecutionConverters.class.getClassLoader());
 	private static final boolean RXJAVA_SINGLE_PRESENT = ClassUtils.isPresent("rx.Single",
 			QueryExecutionConverters.class.getClassLoader());

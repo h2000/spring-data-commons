@@ -15,6 +15,7 @@
  */
 package org.springframework.data.repository.util;
 
+import reactor.adapter.RxJava1Adapter;
 import scala.Function0;
 import scala.Option;
 import scala.runtime.AbstractFunction0;
@@ -38,7 +39,6 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 import com.google.common.base.Optional;
 
-import reactor.core.converter.DependencyUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import rx.Completable;
@@ -81,7 +81,7 @@ public abstract class QueryExecutionConverters {
 	private static final boolean SCALA_PRESENT = ClassUtils.isPresent("scala.Option",
 			QueryExecutionConverters.class.getClassLoader());
 
-	private static final boolean PROJECT_REACTOR_PRESENT = ClassUtils.isPresent("reactor.core.converter.DependencyUtils",
+	private static final boolean PROJECT_REACTOR_PRESENT = ClassUtils.isPresent("reactor.adapter.RxJava1Adapter",
 			QueryExecutionConverters.class.getClassLoader());
 	private static final boolean RXJAVA_SINGLE_PRESENT = ClassUtils.isPresent("rx.Single",
 			QueryExecutionConverters.class.getClassLoader());
@@ -591,7 +591,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Single<?> convert(Publisher<?> source) {
-			return DependencyUtils.convertFromPublisher(source, Single.class);
+			return RxJava1Adapter.publisherToSingle(source);
 		}
 	}
 
@@ -607,7 +607,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Completable convert(Publisher<?> source) {
-			return DependencyUtils.convertFromPublisher(source, Completable.class);
+			return RxJava1Adapter.publisherToCompletable(source);
 		}
 	}
 
@@ -623,7 +623,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Observable<?> convert(Publisher<?> source) {
-			return DependencyUtils.convertFromPublisher(source, Observable.class);
+			return RxJava1Adapter.publisherToObservable(source);
 		}
 	}
 
@@ -639,7 +639,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Publisher<?> convert(Single<?> source) {
-			return DependencyUtils.convertToPublisher(source);
+			return RxJava1Adapter.singleToMono(source);
 		}
 	}
 
@@ -655,7 +655,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Mono<?> convert(Single<?> source) {
-			return PublisherToMonoConverter.INSTANCE.convert(DependencyUtils.convertToPublisher(source));
+			return PublisherToMonoConverter.INSTANCE.convert(RxJava1Adapter.singleToMono(source));
 		}
 	}
 
@@ -671,7 +671,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Flux<?> convert(Single<?> source) {
-			return PublisherToFluxConverter.INSTANCE.convert(DependencyUtils.convertToPublisher(source));
+			return PublisherToFluxConverter.INSTANCE.convert(RxJava1Adapter.singleToMono(source));
 		}
 	}
 
@@ -687,7 +687,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Publisher<?> convert(Completable source) {
-			return DependencyUtils.convertToPublisher(source);
+			return RxJava1Adapter.completableToMono(source);
 		}
 	}
 
@@ -719,7 +719,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Publisher<?> convert(Observable<?> source) {
-			return DependencyUtils.convertToPublisher(source);
+			return RxJava1Adapter.observableToFlux(source);
 		}
 	}
 
@@ -735,7 +735,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Mono<?> convert(Observable<?> source) {
-			return PublisherToMonoConverter.INSTANCE.convert(DependencyUtils.convertToPublisher(source));
+			return PublisherToMonoConverter.INSTANCE.convert(RxJava1Adapter.observableToFlux(source));
 		}
 	}
 
@@ -751,7 +751,7 @@ public abstract class QueryExecutionConverters {
 
 		@Override
 		public Flux<?> convert(Observable<?> source) {
-			return PublisherToFluxConverter.INSTANCE.convert(DependencyUtils.convertToPublisher(source));
+			return RxJava1Adapter.observableToFlux(source);
 		}
 	}
 

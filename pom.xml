@@ -17,7 +17,6 @@
 
 	<properties>
 		<scala>2.11.7</scala>
-		<reactor>2.5.0.M4</reactor>
         <source.level>1.8</source.level>
 		<xmlbeam>1.4.8</xmlbeam>
 	</properties>

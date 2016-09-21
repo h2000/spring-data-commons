@@ -17,9 +17,10 @@
 package org.springframework.data.repository.query;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.reactivestreams.Publisher;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -35,13 +36,23 @@ import rx.Single;
  *
  * @author Mark Paluch
  * @since 2.0
- * @see Single
- * @see Observable
+ * @see org.reactivestreams.Publisher
+ * @see rx.Single
+ * @see rx.Observable
+ * @see rx.Completable
+ * @see io.reactivex.Single
+ * @see io.reactivex.Maybe
+ * @see io.reactivex.Observable
+ * @see io.reactivex.Completable
+ * @see io.reactivex.Flowable
  * @see Mono
  * @see Flux
  */
 @UtilityClass
 public class ReactiveWrappers {
+
+	public static final boolean PUBLISHER_PRESENT = ClassUtils.isPresent("org.reactivestreams.Publisher",
+			ReactiveWrappers.class.getClassLoader());
 
 	public static final boolean PROJECT_REACTOR_PRESENT = ClassUtils.isPresent("reactor.core.publisher.Flux",
 			ReactiveWrappers.class.getClassLoader());
@@ -57,8 +68,8 @@ public class ReactiveWrappers {
 
 	static {
 
-		Set<Class<?>> singleTypes = new HashSet<>();
-		Set<Class<?>> multiTypes = new HashSet<>();
+		Set<Class<?>> singleTypes = new LinkedHashSet<>();
+		Set<Class<?>> multiTypes = new LinkedHashSet<>();
 
 		if (RXJAVA1_PRESENT) {
 			singleTypes.add(getRxJava1SingleClass());
@@ -75,6 +86,10 @@ public class ReactiveWrappers {
 		if (PROJECT_REACTOR_PRESENT) {
 			singleTypes.add(getReactorMonoClass());
 			multiTypes.add(getReactorFluxClass());
+		}
+
+		if (PUBLISHER_PRESENT) {
+			multiTypes.add(getReactorPublisherClass());
 		}
 
 		SINGLE_TYPES = Collections.unmodifiableSet(singleTypes);
@@ -105,6 +120,12 @@ public class ReactiveWrappers {
 	public static boolean isMultiType(Class<?> theClass) {
 
 		Assert.notNull(theClass, "Class type must not be null!");
+
+		// Prevent single-types with a multi-hierarchy supertype to be reported as multi type
+		// See Mono implements Publisher
+		if (isSingleType(theClass)) {
+			return false;
+		}
 
 		return isAssignable(MULTI_TYPES, theClass);
 	}
@@ -150,5 +171,9 @@ public class ReactiveWrappers {
 
 	private static Class<?> getReactorFluxClass() {
 		return Flux.class;
+	}
+
+	private static Class<?> getReactorPublisherClass() {
+		return Publisher.class;
 	}
 }

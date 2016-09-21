@@ -75,6 +75,9 @@ public abstract class QueryExecutionConverters {
 			"org.springframework.core.annotation.AnnotationConfigurationException",
 			QueryExecutionConverters.class.getClassLoader());
 
+	private static final boolean ASYNC_RESULT_PRESENT = ClassUtils.isPresent(
+			"org.springframework.scheduling.annotation.AsyncResult", QueryExecutionConverters.class.getClassLoader());
+
 	private static final boolean GUAVA_PRESENT = ClassUtils.isPresent("com.google.common.base.Optional",
 			QueryExecutionConverters.class.getClassLoader());
 	private static final boolean JDK_8_PRESENT = ClassUtils.isPresent("java.util.Optional",
@@ -206,7 +209,9 @@ public abstract class QueryExecutionConverters {
 			conversionService.addConverter(new NullableWrapperToScalaOptionConverter(conversionService));
 		}
 
-		conversionService.addConverter(new NullableWrapperToFutureConverter(conversionService));
+		if (ASYNC_RESULT_PRESENT) {
+			conversionService.addConverter(new NullableWrapperToFutureConverter(conversionService));
+		}
 
 		if (PROJECT_REACTOR_PRESENT) {
 

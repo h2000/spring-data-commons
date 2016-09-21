@@ -29,6 +29,7 @@ import org.springframework.data.repository.util.QueryExecutionConverters;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import io.reactivex.Flowable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import rx.Observable;
@@ -76,7 +77,7 @@ public abstract class ReactiveWrapperConverters {
 	 * Returns whether the given type is a supported wrapper type.
 	 * 
 	 * @param type must not be {@literal null}.
-	 * @return
+	 * @return {@literal true} if the {@code type} is a supported reactive wrapper type.
 	 */
 	public static boolean supports(Class<?> type) {
 		return assignableStream(type).isPresent();
@@ -86,25 +87,28 @@ public abstract class ReactiveWrapperConverters {
 	 * Returns whether the type is a single-like wrapper.
 	 * 
 	 * @param type must not be {@literal null}.
-	 * @return
-	 * @see Single
+	 * @return {@literal true} if the {@code type} is a single-like reactive wrapper type.
+	 * @see rx.Single
+	 * @see io.reactivex.Single
 	 * @see Mono
 	 */
 	public static boolean isSingleLike(Class<?> type) {
-		return assignableStream(type).map(wrapper -> wrapper.getMultiplicity() == Multiplicity.ONE).orElse(false);
+		return ReactiveWrappers.isSingleType(type);
 	}
 
 	/**
 	 * Returns whether the type is a collection/multi-element-like wrapper.
 	 * 
 	 * @param type must not be {@literal null}.
-	 * @return
-	 * @see Observable
+	 * @return {@literal true} if the {@code type} is a collection/multi-element-like reactive wrapper type.
+	 * @see rx.Observable
+	 * @see io.reactivex.Observable
+	 * @see io.reactivex.Flowable
 	 * @see Flux
 	 * @see Publisher
 	 */
 	public static boolean isCollectionLike(Class<?> type) {
-		return assignableStream(type).map(wrapper -> wrapper.getMultiplicity() == Multiplicity.MANY).orElse(false);
+		return ReactiveWrappers.isMultiType(type);
 	}
 
 	/**
@@ -114,6 +118,7 @@ public abstract class ReactiveWrapperConverters {
 	 * @param expectedWrapperType must not be {@literal null}.
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> T toWrapper(Object stream, Class<? extends T> expectedWrapperType) {
 
 		Assert.notNull(stream, "Stream must not be null!");
@@ -162,46 +167,35 @@ public abstract class ReactiveWrapperConverters {
 		return REACTIVE_WRAPPERS.stream().filter(predicate).findFirst();
 	}
 
-	private abstract static class AbstractReactiveWrapper<T> {
+	private interface AbstractReactiveWrapper<T> {
 
-		private final Class<? super T> wrapperClass;
-		private final Multiplicity multiplicity;
+		Class<? super T> getWrapperClass();
 
-		public AbstractReactiveWrapper(Class<? super T> wrapperClass, Multiplicity multiplicity) {
-			this.wrapperClass = wrapperClass;
-			this.multiplicity = multiplicity;
-		}
-
-		public Class<? super T> getWrapperClass() {
-			return wrapperClass;
-		}
-
-		public Multiplicity getMultiplicity() {
-			return multiplicity;
-		}
-
-		public abstract Object map(Object wrapper, Converter<Object, Object> converter);
+		Object map(Object wrapper, Converter<Object, Object> converter);
 	}
 
-	private static class MonoWrapper extends AbstractReactiveWrapper<Mono<?>> {
+	private enum MonoWrapper implements AbstractReactiveWrapper<Mono<?>> {
 
-		static final MonoWrapper INSTANCE = new MonoWrapper();
+		INSTANCE;
 
-		private MonoWrapper() {
-			super(Mono.class, Multiplicity.ONE);
+		@Override
+		public Class<? super Mono<?>> getWrapperClass() {
+			return Mono.class;
 		}
 
+		@Override
 		public Mono<?> map(Object wrapper, Converter<Object, Object> converter) {
 			return ((Mono<?>) wrapper).map(converter::convert);
 		}
 	}
 
-	private static class FluxWrapper extends AbstractReactiveWrapper<Flux<?>> {
+	private enum FluxWrapper implements AbstractReactiveWrapper<Flux<?>> {
 
-		static final FluxWrapper INSTANCE = new FluxWrapper();
+		INSTANCE;
 
-		private FluxWrapper() {
-			super(Flux.class, Multiplicity.MANY);
+		@Override
+		public Class<? super Flux<?>> getWrapperClass() {
+			return Flux.class;
 		}
 
 		public Flux<?> map(Object wrapper, Converter<Object, Object> converter) {
@@ -209,12 +203,13 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class PublisherWrapper extends AbstractReactiveWrapper<Publisher<?>> {
+	private enum PublisherWrapper implements AbstractReactiveWrapper<Publisher<?>> {
 
-		static final PublisherWrapper INSTANCE = new PublisherWrapper();
+		INSTANCE;
 
-		public PublisherWrapper() {
-			super(Publisher.class, Multiplicity.MANY);
+		@Override
+		public Class<? super Publisher<?>> getWrapperClass() {
+			return Publisher.class;
 		}
 
 		@Override
@@ -232,12 +227,13 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class RxJava1SingleWrapper extends AbstractReactiveWrapper<Single<?>> {
+	private enum RxJava1SingleWrapper implements AbstractReactiveWrapper<Single<?>> {
 
-		static final RxJava1SingleWrapper INSTANCE = new RxJava1SingleWrapper();
+		INSTANCE;
 
-		private RxJava1SingleWrapper() {
-			super(Single.class, Multiplicity.ONE);
+		@Override
+		public Class<? super Single<?>> getWrapperClass() {
+			return Single.class;
 		}
 
 		@Override
@@ -246,12 +242,13 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class RxJava1ObservableWrapper extends AbstractReactiveWrapper<Observable<?>> {
+	private enum RxJava1ObservableWrapper implements AbstractReactiveWrapper<Observable<?>> {
 
-		static final RxJava1ObservableWrapper INSTANCE = new RxJava1ObservableWrapper();
+		INSTANCE;
 
-		private RxJava1ObservableWrapper() {
-			super(Observable.class, Multiplicity.MANY);
+		@Override
+		public Class<? super Observable<?>> getWrapperClass() {
+			return Observable.class;
 		}
 
 		@Override
@@ -260,12 +257,13 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class RxJava2SingleWrapper extends AbstractReactiveWrapper<io.reactivex.Single<?>> {
+	private enum RxJava2SingleWrapper implements AbstractReactiveWrapper<io.reactivex.Single<?>> {
 
-		static final RxJava2SingleWrapper INSTANCE = new RxJava2SingleWrapper();
+		INSTANCE;
 
-		private RxJava2SingleWrapper() {
-			super(io.reactivex.Single.class, Multiplicity.ONE);
+		@Override
+		public Class<? super io.reactivex.Single<?>> getWrapperClass() {
+			return io.reactivex.Single.class;
 		}
 
 		@Override
@@ -274,12 +272,13 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class RxJava2MaybeWrapper extends AbstractReactiveWrapper<io.reactivex.Maybe<?>> {
+	private enum RxJava2MaybeWrapper implements AbstractReactiveWrapper<io.reactivex.Maybe<?>> {
 
-		static final RxJava2MaybeWrapper INSTANCE = new RxJava2MaybeWrapper();
+		INSTANCE;
 
-		private RxJava2MaybeWrapper() {
-			super(io.reactivex.Maybe.class, Multiplicity.MANY);
+		@Override
+		public Class<? super io.reactivex.Maybe<?>> getWrapperClass() {
+			return io.reactivex.Maybe.class;
 		}
 
 		@Override
@@ -288,12 +287,13 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class RxJava2ObservableWrapper extends AbstractReactiveWrapper<io.reactivex.Observable<?>> {
+	private enum RxJava2ObservableWrapper implements AbstractReactiveWrapper<io.reactivex.Observable<?>> {
 
-		static final RxJava2ObservableWrapper INSTANCE = new RxJava2ObservableWrapper();
+		INSTANCE;
 
-		private RxJava2ObservableWrapper() {
-			super(io.reactivex.Observable.class, Multiplicity.MANY);
+		@Override
+		public Class<? super io.reactivex.Observable<?>> getWrapperClass() {
+			return io.reactivex.Observable.class;
 		}
 
 		@Override
@@ -302,22 +302,19 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class RxJava2FlowableWrapper extends AbstractReactiveWrapper<io.reactivex.Flowable<?>> {
+	private enum RxJava2FlowableWrapper implements AbstractReactiveWrapper<io.reactivex.Flowable<?>> {
 
-		static final RxJava2FlowableWrapper INSTANCE = new RxJava2FlowableWrapper();
+		INSTANCE;
 
-		private RxJava2FlowableWrapper() {
-			super(io.reactivex.Flowable.class, Multiplicity.MANY);
+		@Override
+		public Class<? super Flowable<?>> getWrapperClass() {
+			return io.reactivex.Flowable.class;
 		}
 
 		@Override
 		public io.reactivex.Flowable<?> map(Object wrapper, Converter<Object, Object> converter) {
 			return ((io.reactivex.Flowable<?>) wrapper).map(converter::convert);
 		}
-	}
-
-	private enum Multiplicity {
-		ONE, MANY,
 	}
 
 }

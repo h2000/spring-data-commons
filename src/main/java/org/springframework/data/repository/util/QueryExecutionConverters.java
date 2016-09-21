@@ -44,7 +44,6 @@ import reactor.core.publisher.Mono;
 import rx.Completable;
 import rx.Observable;
 import rx.Single;
-import scala.Option;
 
 /**
  * Converters to potentially wrap the execution of a repository method into a variety of wrapper types potentially being
@@ -83,11 +82,7 @@ public abstract class QueryExecutionConverters {
 
 	private static final boolean PROJECT_REACTOR_PRESENT = ClassUtils.isPresent("reactor.adapter.RxJava1Adapter",
 			QueryExecutionConverters.class.getClassLoader());
-	private static final boolean RXJAVA_SINGLE_PRESENT = ClassUtils.isPresent("rx.Single",
-			QueryExecutionConverters.class.getClassLoader());
-	private static final boolean RXJAVA_OBSERVABLE_PRESENT = ClassUtils.isPresent("rx.Observable",
-			QueryExecutionConverters.class.getClassLoader());
-	private static final boolean RXJAVA_COMPLETABLE_PRESENT = ClassUtils.isPresent("rx.Completable",
+	private static final boolean RXJAVA1_PRESENT = ClassUtils.isPresent("rx.Completable",
 			QueryExecutionConverters.class.getClassLoader());
 
 	private static final Set<Class<?>> WRAPPER_TYPES = new HashSet<Class<?>>();
@@ -130,15 +125,9 @@ public abstract class QueryExecutionConverters {
 			WRAPPER_TYPES.add(Flux.class);
 		}
 
-		if (RXJAVA_SINGLE_PRESENT) {
+		if (RXJAVA1_PRESENT) {
 			WRAPPER_TYPES.add(Single.class);
-		}
-
-		if (RXJAVA_COMPLETABLE_PRESENT) {
 			WRAPPER_TYPES.add(Completable.class);
-		}
-
-		if (RXJAVA_OBSERVABLE_PRESENT) {
 			WRAPPER_TYPES.add(Observable.class);
 		}
 	}
@@ -209,20 +198,17 @@ public abstract class QueryExecutionConverters {
 
 		if (PROJECT_REACTOR_PRESENT) {
 
-			if (RXJAVA_COMPLETABLE_PRESENT) {
+			if (RXJAVA1_PRESENT) {
+
 				conversionService.addConverter(PublisherToCompletableConverter.INSTANCE);
 				conversionService.addConverter(CompletableToPublisherConverter.INSTANCE);
 				conversionService.addConverter(CompletableToMonoConverter.INSTANCE);
-			}
 
-			if (RXJAVA_SINGLE_PRESENT) {
 				conversionService.addConverter(PublisherToSingleConverter.INSTANCE);
 				conversionService.addConverter(SingleToPublisherConverter.INSTANCE);
 				conversionService.addConverter(SingleToMonoConverter.INSTANCE);
 				conversionService.addConverter(SingleToFluxConverter.INSTANCE);
-			}
 
-			if (RXJAVA_OBSERVABLE_PRESENT) {
 				conversionService.addConverter(PublisherToObservableConverter.INSTANCE);
 				conversionService.addConverter(ObservableToPublisherConverter.INSTANCE);
 				conversionService.addConverter(ObservableToMonoConverter.INSTANCE);
@@ -233,7 +219,7 @@ public abstract class QueryExecutionConverters {
 			conversionService.addConverter(PublisherToFluxConverter.INSTANCE);
 		}
 
-		if (RXJAVA_SINGLE_PRESENT && RXJAVA_OBSERVABLE_PRESENT) {
+		if (RXJAVA1_PRESENT) {
 			conversionService.addConverter(SingleToObservableConverter.INSTANCE);
 			conversionService.addConverter(ObservableToSingleConverter.INSTANCE);
 		}

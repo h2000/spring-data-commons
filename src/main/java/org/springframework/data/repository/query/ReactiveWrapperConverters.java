@@ -15,6 +15,8 @@
  */
 package org.springframework.data.repository.query;
 
+import static org.springframework.data.repository.query.ReactiveWrappers.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -40,13 +42,6 @@ import rx.Single;
  */
 public abstract class ReactiveWrapperConverters {
 
-	private static final boolean PROJECT_REACTOR_PRESENT = ClassUtils.isPresent("reactor.core.publisher.Flux",
-			QueryExecutionConverters.class.getClassLoader());
-	private static final boolean RXJAVA_SINGLE_PRESENT = ClassUtils.isPresent("rx.Single",
-			QueryExecutionConverters.class.getClassLoader());
-	private static final boolean RXJAVA_OBSERVABLE_PRESENT = ClassUtils.isPresent("rx.Observable",
-			QueryExecutionConverters.class.getClassLoader());
-
 	private static final List<AbstractReactiveWrapper<?>> REACTIVE_WRAPPERS = new ArrayList<>();
 	private static final GenericConversionService GENERIC_CONVERSION_SERVICE = new GenericConversionService();
 
@@ -58,12 +53,9 @@ public abstract class ReactiveWrapperConverters {
 			REACTIVE_WRAPPERS.add(PublisherWrapper.INSTANCE);
 		}
 
-		if (RXJAVA_SINGLE_PRESENT) {
-			REACTIVE_WRAPPERS.add(SingleWrapper.INSTANCE);
-		}
-
-		if (RXJAVA_OBSERVABLE_PRESENT) {
-			REACTIVE_WRAPPERS.add(ObservableWrapper.INSTANCE);
+		if (RXJAVA1_PRESENT) {
+			REACTIVE_WRAPPERS.add(RxJava1SingleWrapper.INSTANCE);
+			REACTIVE_WRAPPERS.add(RxJava1ObservableWrapper.INSTANCE);
 		}
 
 		QueryExecutionConverters.registerConvertersIn(GENERIC_CONVERSION_SERVICE);
@@ -150,15 +142,15 @@ public abstract class ReactiveWrapperConverters {
 	}
 
 	private static Optional<AbstractReactiveWrapper<?>> assignableStream(Class<?> type) {
-		
+
 		Assert.notNull(type, "Type must not be null!");
-		
+
 		return findWrapper(wrapper -> ClassUtils.isAssignable(wrapper.getWrapperClass(), type));
 	}
 
 	private static Optional<AbstractReactiveWrapper<?>> findWrapper(
 			Predicate<? super AbstractReactiveWrapper<?>> predicate) {
-		
+
 		return REACTIVE_WRAPPERS.stream().filter(predicate).findFirst();
 	}
 
@@ -232,11 +224,11 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class SingleWrapper extends AbstractReactiveWrapper<Single<?>> {
+	private static class RxJava1SingleWrapper extends AbstractReactiveWrapper<Single<?>> {
 
-		static final SingleWrapper INSTANCE = new SingleWrapper();
+		static final RxJava1SingleWrapper INSTANCE = new RxJava1SingleWrapper();
 
-		private SingleWrapper() {
+		private RxJava1SingleWrapper() {
 			super(Single.class, Multiplicity.ONE);
 		}
 
@@ -246,11 +238,11 @@ public abstract class ReactiveWrapperConverters {
 		}
 	}
 
-	private static class ObservableWrapper extends AbstractReactiveWrapper<Observable<?>> {
+	private static class RxJava1ObservableWrapper extends AbstractReactiveWrapper<Observable<?>> {
 
-		static final ObservableWrapper INSTANCE = new ObservableWrapper();
+		static final RxJava1ObservableWrapper INSTANCE = new RxJava1ObservableWrapper();
 
-		private ObservableWrapper() {
+		private RxJava1ObservableWrapper() {
 			super(Observable.class, Multiplicity.MANY);
 		}
 

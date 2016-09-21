@@ -20,6 +20,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.*;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
+import io.reactivex.Flowable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import rx.Completable;
@@ -49,11 +50,24 @@ public class ReactiveWrapperConvertersUnitTests {
 	 * @see DATACMNS-836
 	 */
 	@Test
-	public void shouldSupportRxJavaTypes() {
+	public void shouldSupportRxJava1Types() {
 
 		assertThat(ReactiveWrapperConverters.supports(Single.class)).isTrue();
 		assertThat(ReactiveWrapperConverters.supports(Observable.class)).isTrue();
 		assertThat(ReactiveWrapperConverters.supports(Completable.class)).isFalse();
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void shouldSupportRxJava2Types() {
+
+		assertThat(ReactiveWrapperConverters.supports(io.reactivex.Single.class)).isTrue();
+		assertThat(ReactiveWrapperConverters.supports(io.reactivex.Maybe.class)).isTrue();
+		assertThat(ReactiveWrapperConverters.supports(io.reactivex.Observable.class)).isTrue();
+		assertThat(ReactiveWrapperConverters.supports(io.reactivex.Flowable.class)).isTrue();
+		assertThat(ReactiveWrapperConverters.supports(io.reactivex.Completable.class)).isFalse();
 	}
 
 	/**
@@ -67,6 +81,10 @@ public class ReactiveWrapperConvertersUnitTests {
 		assertThat(ReactiveWrapperConverters.isSingleLike(Single.class)).isTrue();
 		assertThat(ReactiveWrapperConverters.isSingleLike(Observable.class)).isFalse();
 		assertThat(ReactiveWrapperConverters.isSingleLike(Publisher.class)).isFalse();
+		assertThat(ReactiveWrapperConverters.isSingleLike(io.reactivex.Single.class)).isTrue();
+		assertThat(ReactiveWrapperConverters.isSingleLike(io.reactivex.Maybe.class)).isFalse();
+		assertThat(ReactiveWrapperConverters.isSingleLike(Flowable.class)).isFalse();
+		assertThat(ReactiveWrapperConverters.isSingleLike(io.reactivex.Observable.class)).isFalse();
 	}
 
 	/**
@@ -80,6 +98,10 @@ public class ReactiveWrapperConvertersUnitTests {
 		assertThat(ReactiveWrapperConverters.isCollectionLike(Single.class)).isFalse();
 		assertThat(ReactiveWrapperConverters.isCollectionLike(Observable.class)).isTrue();
 		assertThat(ReactiveWrapperConverters.isCollectionLike(Publisher.class)).isTrue();
+		assertThat(ReactiveWrapperConverters.isCollectionLike(io.reactivex.Single.class)).isFalse();
+		assertThat(ReactiveWrapperConverters.isCollectionLike(io.reactivex.Maybe.class)).isTrue();
+		assertThat(ReactiveWrapperConverters.isCollectionLike(Flowable.class)).isTrue();
+		assertThat(ReactiveWrapperConverters.isCollectionLike(io.reactivex.Observable.class)).isTrue();
 	}
 
 	/**
@@ -96,10 +118,131 @@ public class ReactiveWrapperConvertersUnitTests {
 	 * @see DATACMNS-836
 	 */
 	@Test
-	public void toWrapperShouldConvertMonoToSingle() {
+	public void toWrapperShouldConvertMonoToRxJava1Single() {
 
 		Mono<String> foo = Mono.just("foo");
 		assertThat(ReactiveWrapperConverters.toWrapper(foo, Single.class)).isInstanceOf(Single.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertMonoToRxJava2Single() {
+
+		Mono<String> foo = Mono.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, io.reactivex.Single.class))
+				.isInstanceOf(io.reactivex.Single.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2SingleToMono() {
+
+		io.reactivex.Single<String> foo = io.reactivex.Single.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Mono.class)).isInstanceOf(Mono.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2SingleToPublisher() {
+
+		io.reactivex.Single<String> foo = io.reactivex.Single.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Publisher.class)).isInstanceOf(Publisher.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2MaybeToMono() {
+
+		io.reactivex.Maybe<String> foo = io.reactivex.Maybe.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Mono.class)).isInstanceOf(Mono.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2MaybeToFlux() {
+
+		io.reactivex.Maybe<String> foo = io.reactivex.Maybe.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Flux.class)).isInstanceOf(Flux.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2MaybeToPublisher() {
+
+		io.reactivex.Maybe<String> foo = io.reactivex.Maybe.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Publisher.class)).isInstanceOf(Publisher.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2FlowableToMono() {
+
+		io.reactivex.Flowable<String> foo = io.reactivex.Flowable.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Mono.class)).isInstanceOf(Mono.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2FlowableToFlux() {
+
+		io.reactivex.Flowable<String> foo = io.reactivex.Flowable.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Flux.class)).isInstanceOf(Flux.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldCastRxJava2FlowableToPublisher() {
+
+		io.reactivex.Flowable<String> foo = io.reactivex.Flowable.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Publisher.class)).isSameAs(foo);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2ObservableToMono() {
+
+		io.reactivex.Observable<String> foo = io.reactivex.Observable.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Mono.class)).isInstanceOf(Mono.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2ObservableToFlux() {
+
+		io.reactivex.Observable<String> foo = io.reactivex.Observable.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Flux.class)).isInstanceOf(Flux.class);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void toWrapperShouldConvertRxJava2ObservableToPublisher() {
+
+		io.reactivex.Observable<String> foo = io.reactivex.Observable.just("foo");
+		assertThat(ReactiveWrapperConverters.toWrapper(foo, Publisher.class)).isInstanceOf(Publisher.class);
 	}
 
 	/**
@@ -138,7 +281,7 @@ public class ReactiveWrapperConvertersUnitTests {
 	 * @see DATACMNS-836
 	 */
 	@Test
-	public void shouldMapSingle() {
+	public void shouldMapRxJava1Single() {
 
 		Single<String> foo = Single.just("foo");
 		Single<Long> map = ReactiveWrapperConverters.map(foo, source -> 1L);
@@ -149,10 +292,54 @@ public class ReactiveWrapperConvertersUnitTests {
 	 * @see DATACMNS-836
 	 */
 	@Test
-	public void shouldMapObservable() {
+	public void shouldMapRxJava1Observable() {
 
 		Observable<String> foo = Observable.just("foo");
 		Observable<Long> map = ReactiveWrapperConverters.map(foo, source -> 1L);
 		assertThat(map.toBlocking().first()).isEqualTo(1L);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void shouldMapRxJava2Single() {
+
+		io.reactivex.Single<String> foo = io.reactivex.Single.just("foo");
+		io.reactivex.Single<Long> map = ReactiveWrapperConverters.map(foo, source -> 1L);
+		assertThat(map.blockingGet()).isEqualTo(1L);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void shouldMapRxJava2Maybe() {
+
+		io.reactivex.Maybe<String> foo = io.reactivex.Maybe.just("foo");
+		io.reactivex.Maybe<Long> map = ReactiveWrapperConverters.map(foo, source -> 1L);
+		assertThat(map.toSingle().blockingGet()).isEqualTo(1L);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void shouldMapRxJava2Observable() {
+
+		io.reactivex.Observable<String> foo = io.reactivex.Observable.just("foo");
+		io.reactivex.Observable<Long> map = ReactiveWrapperConverters.map(foo, source -> 1L);
+		assertThat(map.blockingFirst()).isEqualTo(1L);
+	}
+
+	/**
+	 * @see DATACMNS-836
+	 */
+	@Test
+	public void shouldMapRxJava2Flowable() {
+
+		io.reactivex.Flowable<String> foo = io.reactivex.Flowable.just("foo");
+		io.reactivex.Flowable<Long> map = ReactiveWrapperConverters.map(foo, source -> 1L);
+		assertThat(map.blockingFirst()).isEqualTo(1L);
 	}
 }

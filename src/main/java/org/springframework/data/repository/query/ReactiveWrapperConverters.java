@@ -47,15 +47,22 @@ public abstract class ReactiveWrapperConverters {
 
 	static {
 
+		if (RXJAVA1_PRESENT) {
+			REACTIVE_WRAPPERS.add(RxJava1SingleWrapper.INSTANCE);
+			REACTIVE_WRAPPERS.add(RxJava1ObservableWrapper.INSTANCE);
+		}
+
+		if (RXJAVA2_PRESENT) {
+			REACTIVE_WRAPPERS.add(RxJava2SingleWrapper.INSTANCE);
+			REACTIVE_WRAPPERS.add(RxJava2MaybeWrapper.INSTANCE);
+			REACTIVE_WRAPPERS.add(RxJava2ObservableWrapper.INSTANCE);
+			REACTIVE_WRAPPERS.add(RxJava2FlowableWrapper.INSTANCE);
+		}
+
 		if (PROJECT_REACTOR_PRESENT) {
 			REACTIVE_WRAPPERS.add(FluxWrapper.INSTANCE);
 			REACTIVE_WRAPPERS.add(MonoWrapper.INSTANCE);
 			REACTIVE_WRAPPERS.add(PublisherWrapper.INSTANCE);
-		}
-
-		if (RXJAVA1_PRESENT) {
-			REACTIVE_WRAPPERS.add(RxJava1SingleWrapper.INSTANCE);
-			REACTIVE_WRAPPERS.add(RxJava1ObservableWrapper.INSTANCE);
 		}
 
 		QueryExecutionConverters.registerConvertersIn(GENERIC_CONVERSION_SERVICE);
@@ -126,6 +133,7 @@ public abstract class ReactiveWrapperConverters {
 	 * @param converter must not be {@literal null}.
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> T map(Object stream, Converter<Object, Object> converter) {
 
 		Assert.notNull(stream, "Stream must not be null!");
@@ -249,6 +257,62 @@ public abstract class ReactiveWrapperConverters {
 		@Override
 		public Observable<?> map(Object wrapper, Converter<Object, Object> converter) {
 			return ((Observable<?>) wrapper).map(converter::convert);
+		}
+	}
+
+	private static class RxJava2SingleWrapper extends AbstractReactiveWrapper<io.reactivex.Single<?>> {
+
+		static final RxJava2SingleWrapper INSTANCE = new RxJava2SingleWrapper();
+
+		private RxJava2SingleWrapper() {
+			super(io.reactivex.Single.class, Multiplicity.ONE);
+		}
+
+		@Override
+		public io.reactivex.Single<?> map(Object wrapper, Converter<Object, Object> converter) {
+			return ((io.reactivex.Single<?>) wrapper).map(converter::convert);
+		}
+	}
+
+	private static class RxJava2MaybeWrapper extends AbstractReactiveWrapper<io.reactivex.Maybe<?>> {
+
+		static final RxJava2MaybeWrapper INSTANCE = new RxJava2MaybeWrapper();
+
+		private RxJava2MaybeWrapper() {
+			super(io.reactivex.Maybe.class, Multiplicity.MANY);
+		}
+
+		@Override
+		public io.reactivex.Maybe<?> map(Object wrapper, Converter<Object, Object> converter) {
+			return ((io.reactivex.Maybe<?>) wrapper).map(converter::convert);
+		}
+	}
+
+	private static class RxJava2ObservableWrapper extends AbstractReactiveWrapper<io.reactivex.Observable<?>> {
+
+		static final RxJava2ObservableWrapper INSTANCE = new RxJava2ObservableWrapper();
+
+		private RxJava2ObservableWrapper() {
+			super(io.reactivex.Observable.class, Multiplicity.MANY);
+		}
+
+		@Override
+		public io.reactivex.Observable<?> map(Object wrapper, Converter<Object, Object> converter) {
+			return ((io.reactivex.Observable<?>) wrapper).map(converter::convert);
+		}
+	}
+
+	private static class RxJava2FlowableWrapper extends AbstractReactiveWrapper<io.reactivex.Flowable<?>> {
+
+		static final RxJava2FlowableWrapper INSTANCE = new RxJava2FlowableWrapper();
+
+		private RxJava2FlowableWrapper() {
+			super(io.reactivex.Flowable.class, Multiplicity.MANY);
+		}
+
+		@Override
+		public io.reactivex.Flowable<?> map(Object wrapper, Converter<Object, Object> converter) {
+			return ((io.reactivex.Flowable<?>) wrapper).map(converter::convert);
 		}
 	}
 

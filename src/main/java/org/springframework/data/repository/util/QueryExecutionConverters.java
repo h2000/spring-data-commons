@@ -15,11 +15,6 @@
  */
 package org.springframework.data.repository.util;
 
-import reactor.adapter.RxJava1Adapter;
-import scala.Function0;
-import scala.Option;
-import scala.runtime.AbstractFunction0;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,11 +34,18 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 import com.google.common.base.Optional;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import reactor.adapter.RxJava1Adapter;
+import reactor.adapter.RxJava2Adapter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import rx.Completable;
 import rx.Observable;
 import rx.Single;
+import scala.Function0;
+import scala.Option;
+import scala.runtime.AbstractFunction0;
 
 /**
  * Converters to potentially wrap the execution of a repository method into a variety of wrapper types potentially being
@@ -83,6 +85,8 @@ public abstract class QueryExecutionConverters {
 	private static final boolean PROJECT_REACTOR_PRESENT = ClassUtils.isPresent("reactor.adapter.RxJava1Adapter",
 			QueryExecutionConverters.class.getClassLoader());
 	private static final boolean RXJAVA1_PRESENT = ClassUtils.isPresent("rx.Completable",
+			QueryExecutionConverters.class.getClassLoader());
+	private static final boolean RXJAVA2_PRESENT = ClassUtils.isPresent("io.reactivex.Completable",
 			QueryExecutionConverters.class.getClassLoader());
 
 	private static final Set<Class<?>> WRAPPER_TYPES = new HashSet<Class<?>>();
@@ -129,6 +133,14 @@ public abstract class QueryExecutionConverters {
 			WRAPPER_TYPES.add(Single.class);
 			WRAPPER_TYPES.add(Completable.class);
 			WRAPPER_TYPES.add(Observable.class);
+		}
+
+		if (RXJAVA2_PRESENT) {
+			WRAPPER_TYPES.add(io.reactivex.Single.class);
+			WRAPPER_TYPES.add(io.reactivex.Maybe.class);
+			WRAPPER_TYPES.add(io.reactivex.Completable.class);
+			WRAPPER_TYPES.add(io.reactivex.Observable.class);
+			WRAPPER_TYPES.add(io.reactivex.Flowable.class);
 		}
 	}
 
@@ -200,19 +212,44 @@ public abstract class QueryExecutionConverters {
 
 			if (RXJAVA1_PRESENT) {
 
-				conversionService.addConverter(PublisherToCompletableConverter.INSTANCE);
-				conversionService.addConverter(CompletableToPublisherConverter.INSTANCE);
-				conversionService.addConverter(CompletableToMonoConverter.INSTANCE);
+				conversionService.addConverter(PublisherToRxJava1CompletableConverter.INSTANCE);
+				conversionService.addConverter(RxJava1CompletableToPublisherConverter.INSTANCE);
+				conversionService.addConverter(RxJava1CompletableToMonoConverter.INSTANCE);
 
-				conversionService.addConverter(PublisherToSingleConverter.INSTANCE);
-				conversionService.addConverter(SingleToPublisherConverter.INSTANCE);
-				conversionService.addConverter(SingleToMonoConverter.INSTANCE);
-				conversionService.addConverter(SingleToFluxConverter.INSTANCE);
+				conversionService.addConverter(PublisherToRxJava1SingleConverter.INSTANCE);
+				conversionService.addConverter(RxJava1SingleToPublisherConverter.INSTANCE);
+				conversionService.addConverter(RxJava1SingleToMonoConverter.INSTANCE);
+				conversionService.addConverter(RxJava1SingleToFluxConverter.INSTANCE);
 
-				conversionService.addConverter(PublisherToObservableConverter.INSTANCE);
-				conversionService.addConverter(ObservableToPublisherConverter.INSTANCE);
-				conversionService.addConverter(ObservableToMonoConverter.INSTANCE);
-				conversionService.addConverter(ObservableToFluxConverter.INSTANCE);
+				conversionService.addConverter(PublisherToRxJava1ObservableConverter.INSTANCE);
+				conversionService.addConverter(RxJava1ObservableToPublisherConverter.INSTANCE);
+				conversionService.addConverter(RxJava1ObservableToMonoConverter.INSTANCE);
+				conversionService.addConverter(RxJava1ObservableToFluxConverter.INSTANCE);
+			}
+
+			if (RXJAVA2_PRESENT) {
+
+				conversionService.addConverter(PublisherToRxJava2CompletableConverter.INSTANCE);
+				conversionService.addConverter(RxJava2CompletableToPublisherConverter.INSTANCE);
+				conversionService.addConverter(RxJava2CompletableToMonoConverter.INSTANCE);
+
+				conversionService.addConverter(PublisherToRxJava2SingleConverter.INSTANCE);
+				conversionService.addConverter(RxJava2SingleToPublisherConverter.INSTANCE);
+				conversionService.addConverter(RxJava2SingleToMonoConverter.INSTANCE);
+				conversionService.addConverter(RxJava2SingleToFluxConverter.INSTANCE);
+
+				conversionService.addConverter(PublisherToRxJava2ObservableConverter.INSTANCE);
+				conversionService.addConverter(RxJava2ObservableToPublisherConverter.INSTANCE);
+				conversionService.addConverter(RxJava2ObservableToMonoConverter.INSTANCE);
+				conversionService.addConverter(RxJava2ObservableToFluxConverter.INSTANCE);
+
+				conversionService.addConverter(PublisherToRxJava2FlowableConverter.INSTANCE);
+				conversionService.addConverter(RxJava2FlowableToPublisherConverter.INSTANCE);
+
+				conversionService.addConverter(PublisherToRxJava2MaybeConverter.INSTANCE);
+				conversionService.addConverter(RxJava2MaybeToPublisherConverter.INSTANCE);
+				conversionService.addConverter(RxJava2MaybeToMonoConverter.INSTANCE);
+				conversionService.addConverter(RxJava2MaybeToFluxConverter.INSTANCE);
 			}
 
 			conversionService.addConverter(PublisherToMonoConverter.INSTANCE);
@@ -220,8 +257,13 @@ public abstract class QueryExecutionConverters {
 		}
 
 		if (RXJAVA1_PRESENT) {
-			conversionService.addConverter(SingleToObservableConverter.INSTANCE);
-			conversionService.addConverter(ObservableToSingleConverter.INSTANCE);
+			conversionService.addConverter(RxJava1SingleToObservableConverter.INSTANCE);
+			conversionService.addConverter(RxJava1ObservableToSingleConverter.INSTANCE);
+		}
+
+		if (RXJAVA2_PRESENT) {
+			conversionService.addConverter(RxJava2SingleToObservableConverter.INSTANCE);
+			conversionService.addConverter(RxJava2ObservableToSingleConverter.INSTANCE);
 		}
 	}
 
@@ -571,7 +613,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum PublisherToSingleConverter implements Converter<Publisher<?>, Single<?>> {
+	public enum PublisherToRxJava1SingleConverter implements Converter<Publisher<?>, Single<?>> {
 
 		INSTANCE;
 
@@ -587,7 +629,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum PublisherToCompletableConverter implements Converter<Publisher<?>, Completable> {
+	public enum PublisherToRxJava1CompletableConverter implements Converter<Publisher<?>, Completable> {
 
 		INSTANCE;
 
@@ -603,7 +645,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum PublisherToObservableConverter implements Converter<Publisher<?>, Observable<?>> {
+	public enum PublisherToRxJava1ObservableConverter implements Converter<Publisher<?>, Observable<?>> {
 
 		INSTANCE;
 
@@ -619,7 +661,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum SingleToPublisherConverter implements Converter<Single<?>, Publisher<?>> {
+	public enum RxJava1SingleToPublisherConverter implements Converter<Single<?>, Publisher<?>> {
 
 		INSTANCE;
 
@@ -635,7 +677,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum SingleToMonoConverter implements Converter<Single<?>, Mono<?>> {
+	public enum RxJava1SingleToMonoConverter implements Converter<Single<?>, Mono<?>> {
 
 		INSTANCE;
 
@@ -651,7 +693,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum SingleToFluxConverter implements Converter<Single<?>, Flux<?>> {
+	public enum RxJava1SingleToFluxConverter implements Converter<Single<?>, Flux<?>> {
 
 		INSTANCE;
 
@@ -667,7 +709,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum CompletableToPublisherConverter implements Converter<Completable, Publisher<?>> {
+	public enum RxJava1CompletableToPublisherConverter implements Converter<Completable, Publisher<?>> {
 
 		INSTANCE;
 
@@ -683,13 +725,13 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum CompletableToMonoConverter implements Converter<Completable, Mono<?>> {
+	public enum RxJava1CompletableToMonoConverter implements Converter<Completable, Mono<?>> {
 
 		INSTANCE;
 
 		@Override
 		public Mono<?> convert(Completable source) {
-			return Mono.from(CompletableToPublisherConverter.INSTANCE.convert(source));
+			return Mono.from(RxJava1CompletableToPublisherConverter.INSTANCE.convert(source));
 		}
 	}
 
@@ -699,7 +741,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum ObservableToPublisherConverter implements Converter<Observable<?>, Publisher<?>> {
+	public enum RxJava1ObservableToPublisherConverter implements Converter<Observable<?>, Publisher<?>> {
 
 		INSTANCE;
 
@@ -715,7 +757,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum ObservableToMonoConverter implements Converter<Observable<?>, Mono<?>> {
+	public enum RxJava1ObservableToMonoConverter implements Converter<Observable<?>, Mono<?>> {
 
 		INSTANCE;
 
@@ -731,7 +773,7 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum ObservableToFluxConverter implements Converter<Observable<?>, Flux<?>> {
+	public enum RxJava1ObservableToFluxConverter implements Converter<Observable<?>, Flux<?>> {
 
 		INSTANCE;
 
@@ -742,12 +784,285 @@ public abstract class QueryExecutionConverters {
 	}
 
 	/**
+	 * A {@link Converter} to convert a {@link Publisher} to {@link io.reactivex.Single}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum PublisherToRxJava2SingleConverter implements Converter<Publisher<?>, io.reactivex.Single<?>> {
+
+		INSTANCE;
+
+		@Override
+		public io.reactivex.Single<?> convert(Publisher<?> source) {
+			return RxJava2Adapter.monoToSingle(Mono.from(source));
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link Publisher} to {@link io.reactivex.Completable}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum PublisherToRxJava2CompletableConverter implements Converter<Publisher<?>, io.reactivex.Completable> {
+
+		INSTANCE;
+
+		@Override
+		public io.reactivex.Completable convert(Publisher<?> source) {
+			return RxJava2Adapter.monoToCompletable(Mono.from(source));
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link Publisher} to {@link io.reactivex.Observable}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum PublisherToRxJava2ObservableConverter implements Converter<Publisher<?>, io.reactivex.Observable<?>> {
+
+		INSTANCE;
+
+		@Override
+		public io.reactivex.Observable<?> convert(Publisher<?> source) {
+			return RxJava2Adapter.fluxToObservable(Flux.from(source));
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Single} to {@link Publisher}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2SingleToPublisherConverter implements Converter<io.reactivex.Single<?>, Publisher<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Publisher<?> convert(io.reactivex.Single<?> source) {
+			return RxJava2Adapter.singleToMono(source);
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Single} to {@link Mono}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2SingleToMonoConverter implements Converter<io.reactivex.Single<?>, Mono<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Mono<?> convert(io.reactivex.Single<?> source) {
+			return PublisherToMonoConverter.INSTANCE.convert(RxJava2Adapter.singleToMono(source));
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Single} to {@link Publisher}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2SingleToFluxConverter implements Converter<io.reactivex.Single<?>, Flux<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Flux<?> convert(io.reactivex.Single<?> source) {
+			return PublisherToFluxConverter.INSTANCE.convert(RxJava2Adapter.singleToMono(source));
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Completable} to {@link Publisher}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2CompletableToPublisherConverter implements Converter<io.reactivex.Completable, Publisher<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Publisher<?> convert(io.reactivex.Completable source) {
+			return RxJava2Adapter.completableToMono(source);
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Completable} to {@link Mono}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2CompletableToMonoConverter implements Converter<io.reactivex.Completable, Mono<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Mono<?> convert(io.reactivex.Completable source) {
+			return Mono.from(RxJava2CompletableToPublisherConverter.INSTANCE.convert(source));
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert an {@link io.reactivex.Observable} to {@link Publisher}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2ObservableToPublisherConverter implements Converter<io.reactivex.Observable<?>, Publisher<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Publisher<?> convert(io.reactivex.Observable<?> source) {
+			return RxJava2Adapter.observableToFlux(source, BackpressureStrategy.BUFFER);
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Observable} to {@link Mono}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2ObservableToMonoConverter implements Converter<io.reactivex.Observable<?>, Mono<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Mono<?> convert(io.reactivex.Observable<?> source) {
+			return PublisherToMonoConverter.INSTANCE
+					.convert(RxJava2Adapter.observableToFlux(source, BackpressureStrategy.BUFFER));
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Observable} to {@link Flux}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2ObservableToFluxConverter implements Converter<io.reactivex.Observable<?>, Flux<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Flux<?> convert(io.reactivex.Observable<?> source) {
+			return RxJava2Adapter.observableToFlux(source, BackpressureStrategy.BUFFER);
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link Publisher} to {@link io.reactivex.Flowable}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum PublisherToRxJava2FlowableConverter implements Converter<Publisher<?>, io.reactivex.Flowable<?>> {
+
+		INSTANCE;
+
+		@Override
+		public io.reactivex.Flowable<?> convert(Publisher<?> source) {
+			return Flowable.fromPublisher(source);
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Flowable} to {@link Publisher}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2FlowableToPublisherConverter implements Converter<io.reactivex.Flowable<?>, Publisher<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Publisher<?> convert(io.reactivex.Flowable<?> source) {
+			return source;
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link Publisher} to {@link io.reactivex.Flowable}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum PublisherToRxJava2MaybeConverter implements Converter<Publisher<?>, io.reactivex.Maybe<?>> {
+
+		INSTANCE;
+
+		@Override
+		public io.reactivex.Maybe<?> convert(Publisher<?> source) {
+			return Flowable.fromPublisher(source).toMaybe();
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Maybe} to {@link Publisher}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2MaybeToPublisherConverter implements Converter<io.reactivex.Maybe<?>, Publisher<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Publisher<?> convert(io.reactivex.Maybe<?> source) {
+			return source.toFlowable();
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Maybe} to {@link Mono}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2MaybeToMonoConverter implements Converter<io.reactivex.Maybe<?>, Mono<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Mono<?> convert(io.reactivex.Maybe<?> source) {
+			return Mono.from(source.toFlowable());
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link io.reactivex.Maybe} to {@link Flux}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2MaybeToFluxConverter implements Converter<io.reactivex.Maybe<?>, Flux<?>> {
+
+		INSTANCE;
+
+		@Override
+		public Flux<?> convert(io.reactivex.Maybe<?> source) {
+			return Flux.from(source.toFlowable());
+		}
+	}
+
+	/**
 	 * A {@link Converter} to convert a {@link Observable} to {@link Single}.
 	 *
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum ObservableToSingleConverter implements Converter<Observable<?>, Single<?>> {
+	public enum RxJava1ObservableToSingleConverter implements Converter<Observable<?>, Single<?>> {
 
 		INSTANCE;
 
@@ -763,12 +1078,46 @@ public abstract class QueryExecutionConverters {
 	 * @author Mark Paluch
 	 * @author 2.0
 	 */
-	public enum SingleToObservableConverter implements Converter<Single<?>, Observable<?>> {
+	public enum RxJava1SingleToObservableConverter implements Converter<Single<?>, Observable<?>> {
 
 		INSTANCE;
 
 		@Override
 		public Observable<?> convert(Single<?> source) {
+			return source.toObservable();
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link Observable} to {@link Single}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2ObservableToSingleConverter
+			implements Converter<io.reactivex.Observable<?>, io.reactivex.Single<?>> {
+
+		INSTANCE;
+
+		@Override
+		public io.reactivex.Single<?> convert(io.reactivex.Observable<?> source) {
+			return source.toSingle();
+		}
+	}
+
+	/**
+	 * A {@link Converter} to convert a {@link Single} to {@link Single}.
+	 *
+	 * @author Mark Paluch
+	 * @author 2.0
+	 */
+	public enum RxJava2SingleToObservableConverter
+			implements Converter<io.reactivex.Single<?>, io.reactivex.Observable<?>> {
+
+		INSTANCE;
+
+		@Override
+		public io.reactivex.Observable<?> convert(io.reactivex.Single<?> source) {
 			return source.toObservable();
 		}
 	}

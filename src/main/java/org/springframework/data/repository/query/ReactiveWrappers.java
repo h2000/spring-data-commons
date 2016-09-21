@@ -49,6 +49,9 @@ public class ReactiveWrappers {
 	public static final boolean RXJAVA1_PRESENT = ClassUtils.isPresent("rx.Single",
 			ReactiveWrappers.class.getClassLoader());
 
+	public static final boolean RXJAVA2_PRESENT = ClassUtils.isPresent("io.reactivex.Single",
+			ReactiveWrappers.class.getClassLoader());
+
 	private static final Set<Class<?>> SINGLE_TYPES;
 	private static final Set<Class<?>> MULTI_TYPES;
 
@@ -60,6 +63,13 @@ public class ReactiveWrappers {
 		if (RXJAVA1_PRESENT) {
 			singleTypes.add(getRxJava1SingleClass());
 			multiTypes.add(getRxJava1ObservableClass());
+		}
+
+		if (RXJAVA2_PRESENT) {
+			singleTypes.add(getRxJava2SingleClass());
+			multiTypes.add(getRxJava2ObservableClass());
+			multiTypes.add(getRxJava2FlowableClass());
+			multiTypes.add(getRxJava2MaybeClass());
 		}
 
 		if (PROJECT_REACTOR_PRESENT) {
@@ -116,6 +126,22 @@ public class ReactiveWrappers {
 
 	private static Class<?> getRxJava1ObservableClass() {
 		return Observable.class;
+	}
+
+	private static Class<?> getRxJava2SingleClass() {
+		return io.reactivex.Single.class;
+	}
+
+	private static Class<?> getRxJava2ObservableClass() {
+		return io.reactivex.Observable.class;
+	}
+
+	private static Class<?> getRxJava2FlowableClass() {
+		return io.reactivex.Flowable.class;
+	}
+
+	private static Class<?> getRxJava2MaybeClass() {
+		return io.reactivex.Maybe.class;
 	}
 
 	private static Class<?> getReactorMonoClass() {

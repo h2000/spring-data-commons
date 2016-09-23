@@ -97,37 +97,55 @@ public class ReactiveWrappers {
 	}
 
 	/**
-	 * Returns {@literal true} if {@code theClass} is a reactive wrapper type for single element emission.
+	 * Returns {@literal true} if reactive support is available. More specifically, whether RxJava1/2 or Project Reactor
+	 * libraries are on the class path.
 	 * 
-	 * @param theClass must not be {@literal null}.
-	 * @return {@literal true} if {@code theClass} is a reactive wrapper type for single element emission
+	 * @return {@literal true} if reactive support is available.
 	 */
-	public static boolean isSingleType(Class<?> theClass) {
-
-		Assert.notNull(theClass, "Class type must not be null!");
-
-		return isAssignable(SINGLE_TYPES, theClass);
+	public static boolean isAvailable() {
+		return RXJAVA1_PRESENT || RXJAVA2_PRESENT || PROJECT_REACTOR_PRESENT;
 	}
 
 	/**
-	 * Returns {@literal true} if {@code theClass} is a reactive wrapper type supporting emission of {@code 0..N}
-	 * elements.
-	 *
-	 * @param theClass must not be {@literal null}.
-	 * @return {@literal true} if {@code theClass} is a reactive wrapper type supporting emission of {@code 0..N}
-	 *         elements.
+	 * Returns {@literal true} if the {@code type} is a supported reactive wrapper type.
+	 * 
+	 * @param type must not be {@literal null}.
+	 * @return {@literal true} if the {@code type} is a supported reactive wrapper type.
 	 */
-	public static boolean isMultiType(Class<?> theClass) {
+	public static boolean supports(Class<?> type) {
+		return isSingleType(type) || isMultiType(type);
+	}
 
-		Assert.notNull(theClass, "Class type must not be null!");
+	/**
+	 * Returns {@literal true} if {@code type} is a reactive wrapper type for single element emission.
+	 * 
+	 * @param type must not be {@literal null}.
+	 * @return {@literal true} if {@code type} is a reactive wrapper type for single element emission
+	 */
+	public static boolean isSingleType(Class<?> type) {
+
+		Assert.notNull(type, "Class type must not be null!");
+
+		return isAssignable(SINGLE_TYPES, type);
+	}
+
+	/**
+	 * Returns {@literal true} if {@code type} is a reactive wrapper type supporting emission of {@code 0..N} elements.
+	 *
+	 * @param type must not be {@literal null}.
+	 * @return {@literal true} if {@code type} is a reactive wrapper type supporting emission of {@code 0..N} elements.
+	 */
+	public static boolean isMultiType(Class<?> type) {
+
+		Assert.notNull(type, "Class type must not be null!");
 
 		// Prevent single-types with a multi-hierarchy supertype to be reported as multi type
 		// See Mono implements Publisher
-		if (isSingleType(theClass)) {
+		if (isSingleType(type)) {
 			return false;
 		}
 
-		return isAssignable(MULTI_TYPES, theClass);
+		return isAssignable(MULTI_TYPES, type);
 	}
 
 	private static boolean isAssignable(Iterable<Class<?>> lhsTypes, Class<?> rhsType) {
